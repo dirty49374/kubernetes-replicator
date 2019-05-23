@@ -2,19 +2,21 @@ package replicate
 
 import (
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/cache"
 	"regexp"
 	"strconv"
 	"strings"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/cache"
 )
 
 type replicatorProps struct {
-	client     kubernetes.Interface
-	store      cache.Store
-	controller cache.Controller
-	allowAll   bool
+	client             kubernetes.Interface
+	store              cache.Store
+	controller         cache.Controller
+	allowAll           bool
+	copyFreeNamespaces []string
 
 	dependencyMap map[string][]string
 }
@@ -32,6 +34,14 @@ type Replicator interface {
 func (r *replicatorProps) isReplicationPermitted(object *metav1.ObjectMeta, sourceObject *metav1.ObjectMeta) (bool, error) {
 	if r.allowAll {
 		return true, nil
+	}
+
+	if r.copyFreeNamespaces != nil {
+		for _, namespace := range r.copyFreeNamespaces {
+			if namespace == sourceObject.Namespace {
+				return true, nil
+			}
+		}
 	}
 
 	// make sure source object allows replication

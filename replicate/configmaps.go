@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -22,12 +22,13 @@ type configMapReplicator struct {
 }
 
 // NewConfigMapReplicator creates a new config map replicator
-func NewConfigMapReplicator(client kubernetes.Interface, resyncPeriod time.Duration, allowAll bool) Replicator {
+func NewConfigMapReplicator(client kubernetes.Interface, resyncPeriod time.Duration, allowAll bool, copyFreeNamespaces []string) Replicator {
 	repl := configMapReplicator{
 		replicatorProps: replicatorProps{
-			allowAll:      allowAll,
-			client:        client,
-			dependencyMap: make(map[string][]string),
+			allowAll:        allowAll,
+			copyFreeNamespaces: copyFreeNamespaces,
+			client:          client,
+			dependencyMap:   make(map[string][]string),
 		},
 	}
 
